@@ -1,226 +1,136 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loan Application</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Auto OTP Reader — Example</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f7fb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display:flex;flex-direction:column;align-items:center; padding:40px; }
+    .otp { display:flex; gap:8px; margin:20px 0; }
+    .otp input {
+      width:44px; height:56px; font-size:28px; text-align:center;
+      border:1px solid #ccc; border-radius:8px;
     }
-    .container {
-      background: #fff;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
-      width: 350px;
-    }
-    h2 {
-      text-align: center;
-      color: #0b63d6;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      background: #0b63d6;
-      color: #fff;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #084ca5;
-    }
-    .hidden {
-      display: none;
-    }
-    .amount-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    .amount-card {
-      background: #f9fafb;
-      border: 2px solid #0b63d6;
-      border-radius: 8px;
-      padding: 15px;
-      text-align: center;
-      font-weight: bold;
-      color: #0b63d6;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .amount-card:hover {
-      background: #e0ecff;
-    }
-    .success {
-      color: green;
-      font-style: italic;
-      margin-top: 10px;
-      text-align: center;
-    }
-    .loading {
-      text-align: center;
-      margin-top: 10px;
-    }
-    /* Popup modal */
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      width: 300px;
-      text-align: center;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-    }
-    .close {
-      float: right;
-      font-size: 18px;
-      cursor: pointer;
-      color: red;
-    }body {
-  font-family: Arial, sans-serif;
-  background: #28a745; /* Green background */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
+    button { padding:10px 16px; border-radius:8px; cursor:pointer; }
+    .info { color:#555; font-size:14px; max-width:560px; text-align:center; }
   </style>
 </head>
 <body>
+  <h2>Enter verification code</h2>
 
-  <div class="container">
-    <h2> Master Loan App</h2>
-
-    <!-- Registration Form -->
-    <div id="registerForm">
-      <div class="form-group">
-        <label for="name">Full Name:</label>
-        <input type="text" id="name" placeholder="Enter your full name" required>
-      </div>
-      <div class="form-group">
-        <label for="phone">Phone Number:</label>
-        <input type="tel" id="phone" placeholder="07XXXXXXXX" required>
-      </div>
-      <button onclick="registerUser()">Register</button>
-
-      <!-- Loading & success -->
-      <div id="loadingMsg" class="loading hidden">
-        <p>Registering...</p>
-      </div>
-      <p id="successMsgRegister" class="success hidden">✅ Successfully Registered!</p>
-    </div>
-
-    <!-- Loan Amount Options -->
-    <div id="loanForm" class="hidden">
-      <p><strong>Select Loan Amount:</strong></p>
-      <div class="amount-list" id="amountList"></div>
-    </div>
+  <div class="otp" id="otp-container">
+    <input inputmode="numeric" pattern="\d*" maxlength="1" class="digit" id="d0" autocomplete="one-time-code">
+    <input inputmode="numeric" pattern="\d*" maxlength="1" class="digit" id="d1" autocomplete="one-time-code">
+    <input inputmode="numeric" pattern="\d*" maxlength="1" class="digit" id="d2" autocomplete="one-time-code">
+    <input inputmode="numeric" pattern="\d*" maxlength="1" class="digit" id="d3" autocomplete="one-time-code">
+    <input inputmode="numeric" pattern="\d*" maxlength="1" class="digit" id="d4" autocomplete="one-time-code">
+    <input inputmode="numeric" pattern="\d*" maxlength="1" class="digit" id="d5" autocomplete="one-time-code">
   </div>
 
-  <!-- Modal -->
-  <div class="modal" id="loanModal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h3>Loan Details</h3>
-      <p id="loanDetails"></p>
-      <button onclick="proceedLoan()">Proceed</button>
-    </div>
-  </div>
+  <button id="submitBtn">Submit</button>
 
-  <script>
-    function registerUser() {
-      const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const loadingMsg = document.getElementById("loadingMsg");
-      const successMsg = document.getElementById("successMsgRegister");
+  <p class="info" id="status">Waiting for code... (or type/paste it)</p>
 
-      if (name.split(" ").length < 2) {
-        alert("Please enter both first and second name.");
-        return;
+<script>
+(function(){
+  const inputs = Array.from(document.querySelectorAll('.digit'));
+  const status = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // helpers
+  function getCode() { return inputs.map(i => i.value || '').join(''); }
+  function setCode(code) {
+    if (!code) return;
+    code = (''+code).replace(/\D/g,'').slice(0,6).padEnd(6,'');
+    inputs.forEach((input, i) => input.value = code[i] === ' ' ? '' : code[i]);
+  }
+  function submitOTP() {
+    const code = getCode();
+    if (code.length !== 6 || /\D/.test(code)) {
+      status.textContent = 'Please enter a 6-digit code.';
+      return;
+    }
+    status.textContent = 'Submitting...';
+    // Replace this fetch URL with your verification endpoint
+    fetch('/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ otp: code })
+    }).then(r => {
+      if (r.ok) return r.json();
+      throw new Error('Network response not ok');
+    }).then(data => {
+      status.textContent = 'Verified (server response): ' + JSON.stringify(data);
+    }).catch(err => {
+      status.textContent = 'Submit failed: ' + err.message;
+    });
+  }
+
+  // Input behavior: move focus, handle paste
+  inputs.forEach((input, idx) => {
+    input.addEventListener('input', e => {
+      const v = e.target.value.replace(/\D/g,'');
+      e.target.value = v.slice(0,1);
+      if (v && idx < inputs.length - 1) inputs[idx+1].focus();
+      if (getCode().length === 6) submitOTP();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+        inputs[idx-1].focus();
+      } else if (e.key === 'ArrowLeft' && idx > 0) {
+        inputs[idx-1].focus();
+      } else if (e.key === 'ArrowRight' && idx < inputs.length - 1) {
+        inputs[idx+1].focus();
       }
-      if (!/^\d{10}$/.test(phone)) {
-        alert("Phone number must be exactly 10 digits.");
-        return;
+    });
+    // allow paste across inputs
+    input.addEventListener('paste', e => {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      setCode(paste);
+      if (paste.length === 6) submitOTP();
+    });
+  });
+
+  submitBtn.addEventListener('click', submitOTP);
+
+  // Try Web OTP API (Chrome on Android)
+  async function tryWebOTP() {
+    if (!('credentials' in navigator)) {
+      status.textContent = 'Web OTP not supported in this browser — type the code manually.';
+      return;
+    }
+    try {
+      // The OTP API resolves with an object { code: '123456' } in supportive browsers
+      status.textContent = 'Listening for SMS (Web OTP)...';
+      const ac = new AbortController();
+      // Stop listening after 60s
+      setTimeout(() => ac.abort(), 60000);
+
+      const content = await navigator.credentials.get({
+        otp: { transport: ['sms'] },
+        signal: ac.signal
+      });
+      // content.code will be the OTP string
+      if (content && content.code) {
+        setCode(content.code);
+        status.textContent = 'Code received from SMS.';
+        submitOTP();
+      } else {
+        status.textContent = 'No OTP received via Web OTP.';
       }
-
-      // Show loading text
-      loadingMsg.classList.remove("hidden");
-      successMsg.classList.add("hidden");
-
-      setTimeout(() => {
-        loadingMsg.classList.add("hidden");
-        successMsg.classList.remove("hidden");
-
-        setTimeout(() => {
-          document.getElementById("registerForm").classList.add("hidden");
-          document.getElementById("loanForm").classList.remove("hidden");
-          generateLoanOptions();
-        }, 1000);
-      }, 2000);
+    } catch (err) {
+      // user dismissed, not supported, or permission denied
+      status.textContent = 'Web OTP failed or was blocked: ' + (err && err.message ? err.message : 'unknown');
     }
+  }
 
-    function generateLoanOptions() {
-      const amountList = document.getElementById("amountList");
-      amountList.innerHTML = "";
-      for (let i = 100000; i <= 2000000; i += 100000) {
-        const card = document.createElement("div");
-        card.className = "amount-card";
-        card.textContent = `UGX ${i.toLocaleString()}`;
-        card.onclick = () => showLoanDetails(i);
-        amountList.appendChild(card);
-      }
-    }
+  // Focus first input on load
+  inputs[0].focus();
+  // Attempt to use Web OTP
+  tryWebOTP();
 
-    function showLoanDetails(amount) {
-      const fee = amount * 0.01;
-      document.getElementById("loanDetails").textContent = 
-        `Loan Amount: UGX ${amount.toLocaleString()}\nRegistration Fee (1%): UGX ${fee.toLocaleString()}`;
-      document.getElementById("loanModal").style.display = "flex";
-      document.getElementById("loanModal").setAttribute("data-amount", amount);
-    }
-
-    function closeModal() {
-      document.getElementById("loanModal").style.display = "none";
-    }
-
-    function proceedLoan() {
-      const modal = document.getElementById("loanModal");
-      const amount = modal.getAttribute("data-amount");
-      const agentNumber = "254107325600"; 
-      const message = `Hello, I have applied for a loan of UGX ${Number(amount).toLocaleString()}.`;
-      const url = `https://wa.me/${agentNumber}?text=${encodeURIComponent(message)}`;
-      window.open(url, "_blank");
-      closeModal();
-    }
-  </script>
+})();
+</script>
 </body>
 </html>
